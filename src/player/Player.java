@@ -9,4 +9,7 @@ public interface Player{
   public List<Field> getFields();
   
   public Field getField(int field);
+  
+  public void setFieldStatus(Field f);
+  
 }

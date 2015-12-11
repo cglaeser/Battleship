@@ -27,5 +27,11 @@ public class Enemy implements Player{
   public Field getField(int field) {
     return fields.get(field);
   }
-  
+
+  @Override
+  public void setFieldStatus(Field f) {
+    // TODO Auto-generated method stub
+    
   }
+  
+}
