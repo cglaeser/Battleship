@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import de.uniba.wiai.lspi.chord.data.ID;
 import de.uniba.wiai.lspi.chord.data.URL;
 import de.uniba.wiai.lspi.chord.service.PropertiesLoader;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
@@ -59,7 +60,9 @@ public class Main {
 			URL bootstrapUrl = new URL("ocsocket://"+bootstrapUrlStr);
 			chord.join(localURL, bootstrapUrl);
 		}else{
-			chord.create(localURL);
+			chord.create(localURL, ID.valueOf(MAX_ID));
+		}
+		if(chord.getID().toBigInteger().equals(MAX_ID)){
 			System.out.println("Press any key to start");
 			System.console().readLine();
 			sm.firstShoot();
