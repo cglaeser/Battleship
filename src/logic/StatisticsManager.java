@@ -142,7 +142,7 @@ public class StatisticsManager implements NotifyCallback{
 				playerIndex++;
 				if(playerIndex < player.size()){
 					playerToShootAt = player.get(playerIndex);
-				}else{//No field found -> shouldn't happen actually
+				}else{//No field found -> choose a random field -> shouldn't happen actually
 					Random r = new Random();
 					Player self = self();
 					BigInteger selfStart = self.getStartField().toBigInteger();
