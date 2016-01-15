@@ -50,7 +50,7 @@ public class Main {
 		String localUrlStr = getProperty("localURL");
 		StatisticsManager sm = new StatisticsManager(chord, shipsPerPlayer, fieldsPerPlayer);
 		chord.setCallback(sm);
-		URL localURL = new URL("ocsocket://"+localUrlStr);
+		URL localURL = new URL("ocsocket://"+localUrlStr+"/");
 		if(args.length > 3){
 			String bootstrapUrlStr = getProperty("bootstrapURL");
 			URL bootstrapUrl = new URL("ocsocket://"+bootstrapUrlStr);
