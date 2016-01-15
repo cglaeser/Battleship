@@ -64,6 +64,7 @@ public class StatisticsManager implements NotifyCallback{
 				hitPlayer = new Player(source, fieldsPerPlayer);
 				idToPlayer.put(source, hitPlayer);
 			}
+			hitPlayer.shot(target, hit);
 			preparePlayer();//Sets startfield of player
 			if(shotsFired.contains(target)){
 				shotsFired.remove(target);
