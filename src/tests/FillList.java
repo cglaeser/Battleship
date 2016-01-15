@@ -15,5 +15,7 @@ public class FillList {
 		StatisticsManager sm = new StatisticsManager(Main.getChordInstance(),10,100);
 		assertTrue(sm.getFieldsWithShips().size()==10);
 	}
+	
+	
 
 }

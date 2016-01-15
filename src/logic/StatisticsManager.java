@@ -53,17 +53,24 @@ public class StatisticsManager implements NotifyCallback{
 		shoot(preparePlayer());		
 	}
 
+	/**
+	 * Nachricht verarbeiten
+	 * @see de.uniba.wiai.lspi.chord.service.NotifyCallback#broadcast(de.uniba.wiai.lspi.chord.data.ID, de.uniba.wiai.lspi.chord.data.ID, java.lang.Boolean)
+	 */
 	@Override
 	public void broadcast(ID source, ID target, Boolean hit) {
 		synchronized (this) {
+			//füge uns + succ + pred zur PlayerMap hinzu
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			if(hitPlayer == null){
 				hitPlayer = new Player(source, fieldsPerPlayer);
+				//neuen spieler zur spielermap hinzufügen
 				idToPlayer.put(source, hitPlayer);
 			}
+			hitPlayer.shot(target, hit);
 			preparePlayer();//Sets startfield of player
 			if(shotsFired.contains(target)){
 				shotsFired.remove(target);
@@ -96,6 +103,9 @@ public class StatisticsManager implements NotifyCallback{
 		return null;
 	}
 	
+	/**
+	 * @param player
+	 */
 	private void shoot(List<Player> player){
 		//TODO add to shotsfired
 	}
