@@ -8,10 +8,18 @@ import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
 public class Main {
+	
+	private static Chord chord = null;
+	
+	public static Chord getChordInstance() throws ServiceException{
+		if (chord == null){
+			chord = new ChordImpl();
+		}
+		return chord;
+	}
 
 	public static void main(String[] args) throws MalformedURLException, ServiceException {
-		Chord chord = new ChordImpl();
-		chord.create();
+		Chord chord = getChordInstance();
 		int shipsPerPlayer = Integer.parseInt(args[0]);
 		int fieldsPerPlayer = Integer.parseInt(args[1]);
 		String localUrlStr = args[2];

@@ -57,5 +57,9 @@ public class StatisticsManager implements NotifyCallback{
 		}
 		return fieldsWithShips;
 	}
+	
+	public Set<Integer> getFieldsWithShips(){
+		return fieldsWithShips;
+	}
 
 }
