@@ -8,7 +8,7 @@ public class LogicTests {
 
 	@Test
 	public void initializeTest(){
-		Main
+		//Todo
 	}
 
 }
