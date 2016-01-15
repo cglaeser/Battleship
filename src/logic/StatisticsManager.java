@@ -11,6 +11,7 @@ import player.Player;
 import de.uniba.wiai.lspi.chord.data.ID;
 import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.NotifyCallback;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
 
 /**
  * To retrieve Informations
@@ -25,6 +26,12 @@ public class StatisticsManager implements NotifyCallback{
 	private Chord chord;
 	private Set<Integer> fieldsWithShips;
 	private Set<ID> shotsFired = new HashSet<ID>();
+	
+	public StatisticsManager() throws ServiceException{
+		this.shipsPerPlayer = 10;
+		this.fieldsPerPlayer = 100;
+		this.chord = Main.getChordInstance();
+	}
 	
 	public StatisticsManager(Chord chord, int shipsPerPlayer, int fieldsPerPlayer){
 		this.shipsPerPlayer = shipsPerPlayer;
@@ -103,6 +110,10 @@ public class StatisticsManager implements NotifyCallback{
 		while(fieldsWithShips.size()< ships){
 			fieldsWithShips.add(r.nextInt(fields));
 		}
+		return fieldsWithShips;
+	}
+	
+	public Set<Integer> getFieldsWithShips(){
 		return fieldsWithShips;
 	}
 
