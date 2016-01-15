@@ -17,7 +17,8 @@ public class Main {
 
 	private static Map<String,String> propertyMap = null;
 	private static ChordImpl chord = null;
-	public static BigInteger MAX_ID = BigInteger.valueOf(2).pow(160).subtract(BigInteger.ONE);
+	public static int NR_BITS_ID = 160;
+	public static BigInteger MAX_ID = BigInteger.valueOf(2).pow(NR_BITS_ID).subtract(BigInteger.ONE);
 	
 	public static ChordImpl getChordInstance() throws ServiceException{
 		if (chord == null){
