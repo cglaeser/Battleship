@@ -36,6 +36,18 @@ public class Player implements Comparable<Player>{
 		return null;
 	}
 	
+	public ID getId() {
+		return id;
+	}
+	public ID getStartField() {
+		return startField;
+	}
+	public int getNrFields() {
+		return nrFields;
+	}
+	public Map<ID, Boolean> getHits() {
+		return hits;
+	}
 	public void setStartField(ID startField){
 		this.startField = startField;
 	}
