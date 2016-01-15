@@ -32,9 +32,7 @@ public class StatisticsManager implements NotifyCallback{
 	private Set<ID> ourShotsFired = new HashSet<ID>();
 	
 	public StatisticsManager() throws ServiceException{
-		this.shipsPerPlayer = 10;
-		this.fieldsPerPlayer = 100;
-		this.chord = Main.getChordInstance();
+		this(Main.getChordInstance(),10,100);
 	}
 	
 	public StatisticsManager(ChordImpl chord, int shipsPerPlayer, int fieldsPerPlayer){
@@ -70,7 +68,7 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			if(hitPlayer == null){
-				hitPlayer = new Player(source, fieldsPerPlayer);
+				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
 				//neuen spieler zur spielermap hinzufügen
 				idToPlayer.put(source, hitPlayer);
 			}
@@ -78,7 +76,7 @@ public class StatisticsManager implements NotifyCallback{
 			preparePlayer();//Sets startfield of player
 			if(ourShotsFired.contains(target)){
 				ourShotsFired.remove(target);
-				if(hitPlayer.getNrHits() == shipsPerPlayer){
+				if(hitPlayer.getRemainingShips() == 0){
 					//TODO I won -> Logger Win!!!
 				}
 			}
@@ -95,15 +93,15 @@ public class StatisticsManager implements NotifyCallback{
 	private void initPlayerMap() {
 		ID ownId = chord.getID();
 		ID predId = chord.getPredecessorID();
-		idToPlayer.put(ownId, new Player(ownId, fieldsPerPlayer));
-		idToPlayer.put(predId, new Player(predId, fieldsPerPlayer));		
+		idToPlayer.put(ownId, new Player(ownId, shipsPerPlayer, fieldsPerPlayer));
+		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
 	
 	private void fillWithFingertable(){
 		for(Node node:chord.getFingerTable()){
 			if(!idToPlayer.containsKey(node.getNodeID())){
 				ID nodeId = node.getNodeID();
-				idToPlayer.put(nodeId, new Player(nodeId, fieldsPerPlayer));
+				idToPlayer.put(nodeId, new Player(nodeId, shipsPerPlayer, fieldsPerPlayer));
 			}
 		}
 	}
