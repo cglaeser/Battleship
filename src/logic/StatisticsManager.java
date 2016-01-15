@@ -63,14 +63,14 @@ public class StatisticsManager implements NotifyCallback{
 	@Override
 	public void broadcast(ID source, ID target, Boolean hit) {
 		synchronized (this) {
-			//füge uns + succ + pred zur PlayerMap hinzu
+			//fï¿½ge uns + succ + pred zur PlayerMap hinzu
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			if(hitPlayer == null){
 				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
-				//neuen spieler zur spielermap hinzufügen
+				//neuen spieler zur spielermap hinzufï¿½gen
 				idToPlayer.put(source, hitPlayer);
 			}
 			hitPlayer.shot(target, hit);
@@ -135,11 +135,17 @@ public class StatisticsManager implements NotifyCallback{
 		return false;
 	}
 	
-	private Set<Integer> fillFields(int ships, int fields){
+	private Set<Integer> fillFields(int nrShips, int nrFields){
 		Set<Integer> fieldsWithShips = new HashSet<Integer>();
+		List<Integer> fields = new ArrayList<Integer>();
+		for(int i = 0; i < nrFields; i++){
+			fields.add(i);
+		}
 		Random r = new Random();
-		while(fieldsWithShips.size()< ships){
-			fieldsWithShips.add(r.nextInt(fields));
+		for(int i = 0; i < nrShips; i++){
+			int fIndex = r.nextInt(fields.size());
+			fieldsWithShips.add(fields.get(fIndex));
+			fields.remove(fIndex);
 		}
 		return fieldsWithShips;
 	}
