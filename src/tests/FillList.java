@@ -12,7 +12,7 @@ public class FillList {
 
 	@Test
 	public void checkListSize() throws ServiceException{
-		StatisticsManager sm = new StatisticsManager(Main.getChordInstance(),10,100);
+		StatisticsManager sm = new StatisticsManager();
 		assertTrue(sm.getFieldsWithShips().size()==10);
 	}
 	

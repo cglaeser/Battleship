@@ -29,9 +29,7 @@ public class StatisticsManager implements NotifyCallback{
 	private Set<ID> ourShotsFired = new HashSet<ID>();
 	
 	public StatisticsManager() throws ServiceException{
-		this.shipsPerPlayer = 10;
-		this.fieldsPerPlayer = 100;
-		this.chord = Main.getChordInstance();
+		this(Main.getChordInstance(),10,100);
 	}
 	
 	public StatisticsManager(Chord chord, int shipsPerPlayer, int fieldsPerPlayer){
