@@ -10,10 +10,12 @@ public class Player implements Comparable<Player>{
 	private ID id;
 	private ID startField = null;
 	private int nrFields;
+	private int nrShips;
 	private Map<ID, Boolean> hits = new HashMap<ID, Boolean>();
 	
-	public Player(ID id, int nrFields){
+	public Player(ID id, int nrShips, int nrFields){
 		this.id = id;
+		this.nrShips = nrShips;
 		this.nrFields = nrFields;
 	}
 	//Achtung: Wir sind in einem Ring!!!!!
@@ -44,5 +46,9 @@ public class Player implements Comparable<Player>{
 	public int compareTo(Player arg0) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+	public int getRemainingShips(){
+		return nrShips-getNrHits();
 	}
 }

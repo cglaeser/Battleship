@@ -65,7 +65,7 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			if(hitPlayer == null){
-				hitPlayer = new Player(source, fieldsPerPlayer);
+				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
 				//neuen spieler zur spielermap hinzufügen
 				idToPlayer.put(source, hitPlayer);
 			}
