@@ -1,8 +1,16 @@
 package player;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.function.Predicate;
 
+import logic.Main;
 import de.uniba.wiai.lspi.chord.data.ID;
 
 public class Player implements Comparable<Player>{
@@ -20,22 +28,83 @@ public class Player implements Comparable<Player>{
 	}
 	//Achtung: Wir sind in einem Ring!!!!!
 	public int getNrHits(){
-		//Achtung -> Wenn start == Null -> 0
-		return 0;
+		if(startField == null){
+			return 0;
+		}else{
+			return getNrFieldsWithState(true);
+		}
 	}
 	
 	public int getNrMisses(){
-		//Achtung -> Wenn start == Null -> 0
-		return 0;
+		if(startField == null){
+			return 0;
+		}else{
+			return getNrFieldsWithState(false);
+		}
+	}
+	
+	private int getNrFieldsWithState(boolean hit){
+		return filterFields(id-> hits.get(id) == hit).size();
+	}
+	
+	private Set<Integer> filterFields(Predicate<ID> condition){
+		//Auch in Zeile 92-99 fixen wenn Bug vorhanden!!!
+		BigInteger length;
+		BigInteger start = startField.toBigInteger();
+		BigInteger end = id.toBigInteger();
+		if(start.compareTo(end) > 0){
+			start = start.subtract(Main.MAX_ID);
+		}
+		length = end.subtract(start);
+		BigInteger rangeSize = length.divide(BigInteger.valueOf(nrFields));
+		
+		Set<Integer> logicalFieldNrsOfState = new HashSet<Integer>();
+		for(ID fieldId:hits.keySet()){
+			if(condition.test(fieldId)){
+				BigInteger fieldNr = fieldId.toBigInteger();
+				if(fieldNr.compareTo(start) > 0){
+					fieldNr = fieldNr.subtract(Main.MAX_ID);
+				}
+				BigInteger dist = fieldNr.subtract(start);
+				Integer logicalFieldNr = dist.divide(rangeSize).intValue();
+				logicalFieldNrsOfState.add(logicalFieldNr);
+			}
+		}
+		return logicalFieldNrsOfState;
 	}
 	
 	public void shot(ID Field, boolean hit){
 		hits.put(Field, hit);
 	}
 	
-	public ID getNonShootField(){
-		//Random etwas nicht getroffenes
-		return null;
+	public ID getRandomNonShootField(){
+		Set<Integer> usedFields = filterFields(id -> true);
+		List<Integer> unusedFields = new ArrayList<Integer>();
+		for(int i = 0; i < nrFields; i++){
+			if(!usedFields.contains(i)){
+				unusedFields.add(i);
+			}
+		}
+		Random r = new Random();
+		int fieldNr = unusedFields.get(r.nextInt(unusedFields.size()));
+		
+		//Auch in Zeile 52-59 fixen wenn Bug vorhanden!!!
+		BigInteger length;
+		BigInteger start = startField.toBigInteger();
+		BigInteger end = id.toBigInteger();
+		if(start.compareTo(end) > 0){
+			start = start.subtract(Main.MAX_ID);
+		}
+		length = end.subtract(start);
+		BigInteger rangeSize = length.divide(BigInteger.valueOf(nrFields));
+		
+		BigInteger distToStart = rangeSize.multiply(BigInteger.valueOf(fieldNr)).add(BigInteger.valueOf((long)(0.5 * rangeSize.doubleValue())));
+		BigInteger idNr = startField.toBigInteger().add(distToStart);
+		if(idNr.compareTo(Main.MAX_ID) > 0){
+			idNr = idNr.subtract(Main.MAX_ID);
+		}
+
+		return ID.valueOf(idNr);
 	}
 	
 	public ID getId() {
@@ -55,9 +124,8 @@ public class Player implements Comparable<Player>{
 	}
 
 	@Override
-	public int compareTo(Player arg0) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int compareTo(Player otherPlayer) {
+		return id.compareTo(otherPlayer.getId());
 	}
 	
 	public int getRemainingShips(){

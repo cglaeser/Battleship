@@ -1,5 +1,6 @@
 package logic;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -112,7 +113,11 @@ public class StatisticsManager implements NotifyCallback{
 		Collections.sort(player);
 		ID lastId = player.get(player.size() - 1).getId();
 		for(Player p:player){
-			p.setStartField(lastId);
+			BigInteger newId = lastId.toBigInteger().add(BigInteger.ONE);
+			if(newId.compareTo(Main.MAX_ID) > 0){
+				newId = newId.subtract(Main.MAX_ID);
+			}
+			p.setStartField(ID.valueOf(newId));
 			lastId = p.getId();
 		}
 		return player;
