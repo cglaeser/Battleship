@@ -25,6 +25,7 @@ public class Main {
 		}else{
 			chord.create(localURL);
 			//TODO Wait for input and shoot on input
+			sm.firstShoot();
 		}
 	}
 }
