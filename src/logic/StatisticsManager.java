@@ -48,9 +48,9 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			fillWithFingertable();
 		}
-		// TODO Broadcast auslösen ob getroffen oder nicht
-		// TODO Spieler beschießen
-		
+		boolean hit = isHit(target);
+		chord.broadcast(target, hit);
+		shoot(preparePlayer());		
 	}
 
 	@Override
@@ -64,18 +64,14 @@ public class StatisticsManager implements NotifyCallback{
 				hitPlayer = new Player(source, fieldsPerPlayer);
 				idToPlayer.put(source, hitPlayer);
 			}
-			List<Player> playerList = preparePlayer();
+			preparePlayer();//Sets startfield of player
 			if(shotsFired.contains(target)){
 				shotsFired.remove(target);
 				if(hitPlayer.getNrHits() == shipsPerPlayer){
-					//TODO I won
+					//TODO I won -> Logger Win!!!
 				}
 			}
-		}
-		//sourceID: angeschossener Knoten (Spieler Id -> Ist auch ChordId -> das Ende seines Bereichs!!!)
-		//targetID: ChordId in dem Feld
-		// TODO Auto-generated method stub
-		
+		}		
 	}
 	
 	public void firstShoot(){
@@ -102,6 +98,10 @@ public class StatisticsManager implements NotifyCallback{
 	
 	private void shoot(List<Player> player){
 		//TODO add to shotsfired
+	}
+	
+	private boolean isHit(ID target){
+		return false;
 	}
 	
 	private Set<Integer> fillFields(int ships, int fields){

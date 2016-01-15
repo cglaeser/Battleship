@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 
 import de.uniba.wiai.lspi.chord.data.URL;
 import de.uniba.wiai.lspi.chord.service.Chord;
+import de.uniba.wiai.lspi.chord.service.PropertiesLoader;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
@@ -13,6 +14,7 @@ public class Main {
 	
 	public static Chord getChordInstance() throws ServiceException{
 		if (chord == null){
+			PropertiesLoader.loadPropertyFile();
 			chord = new ChordImpl();
 		}
 		return chord;
@@ -32,7 +34,8 @@ public class Main {
 			chord.join(localURL, bootstrapUrl);
 		}else{
 			chord.create(localURL);
-			//TODO Wait for input and shoot on input
+			System.out.println("Press any key to start");
+			System.console().readLine();
 			sm.firstShoot();
 		}
 	}
