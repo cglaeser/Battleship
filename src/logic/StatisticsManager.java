@@ -1,5 +1,7 @@
 package logic;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -8,10 +10,11 @@ import java.util.Random;
 import java.util.Set;
 
 import player.Player;
+import de.uniba.wiai.lspi.chord.com.Node;
 import de.uniba.wiai.lspi.chord.data.ID;
-import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.NotifyCallback;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
+import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
 /**
  * To retrieve Informations
@@ -23,7 +26,7 @@ public class StatisticsManager implements NotifyCallback{
 	private int shipsPerPlayer;
 	private int fieldsPerPlayer;
 	private Map<ID, Player> idToPlayer = new HashMap<ID, Player>();
-	private Chord chord;
+	private ChordImpl chord;
 	private Set<Integer> fieldsWithShips;
 	//Our shots
 	private Set<ID> ourShotsFired = new HashSet<ID>();
@@ -32,7 +35,7 @@ public class StatisticsManager implements NotifyCallback{
 		this(Main.getChordInstance(),10,100);
 	}
 	
-	public StatisticsManager(Chord chord, int shipsPerPlayer, int fieldsPerPlayer){
+	public StatisticsManager(ChordImpl chord, int shipsPerPlayer, int fieldsPerPlayer){
 		this.shipsPerPlayer = shipsPerPlayer;
 		this.fieldsPerPlayer = fieldsPerPlayer;
 		this.chord = chord;
@@ -73,7 +76,7 @@ public class StatisticsManager implements NotifyCallback{
 			preparePlayer();//Sets startfield of player
 			if(ourShotsFired.contains(target)){
 				ourShotsFired.remove(target);
-				if(hitPlayer.getNrHits() == shipsPerPlayer){
+				if(hitPlayer.getRemainingShips() == 0){
 					//TODO I won -> Logger Win!!!
 				}
 			}
@@ -88,18 +91,31 @@ public class StatisticsManager implements NotifyCallback{
 	}
 
 	private void initPlayerMap() {
-		// TODO Auto-generated method stub
-		
+		ID ownId = chord.getID();
+		ID predId = chord.getPredecessorID();
+		idToPlayer.put(ownId, new Player(ownId, shipsPerPlayer, fieldsPerPlayer));
+		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
 	
 	private void fillWithFingertable(){
-		
+		for(Node node:chord.getFingerTable()){
+			if(!idToPlayer.containsKey(node.getNodeID())){
+				ID nodeId = node.getNodeID();
+				idToPlayer.put(nodeId, new Player(nodeId, shipsPerPlayer, fieldsPerPlayer));
+			}
+		}
 	}
 	
 	private List<Player> preparePlayer(){
 		fillWithFingertable();
-		//TODO sort Players and set startField
-		return null;
+		List<Player> player = new ArrayList<Player>(idToPlayer.values());
+		Collections.sort(player);
+		ID lastId = player.get(player.size() - 1).getId();
+		for(Player p:player){
+			p.setStartField(lastId);
+			lastId = p.getId();
+		}
+		return player;
 	}
 	
 	/**

@@ -7,17 +7,17 @@ import java.util.Map;
 import java.util.Properties;
 
 import de.uniba.wiai.lspi.chord.data.URL;
-import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.PropertiesLoader;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
 public class Main {
 	
-	private static Chord chord = null;
+
 	private static Map<String,String> propertyMap = null;
+	private static ChordImpl chord = null;
 	
-	public static Chord getChordInstance() throws ServiceException{
+	public static ChordImpl getChordInstance() throws ServiceException{
 		if (chord == null){
 			PropertiesLoader.loadPropertyFile();
 			chord = new ChordImpl();
@@ -41,8 +41,8 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws MalformedURLException, ServiceException {
-		
-		Chord chord = getChordInstance();
+
+		ChordImpl chord = getChordInstance();
 		int shipsPerPlayer = Integer.parseInt(args[0]);
 		int fieldsPerPlayer = Integer.parseInt(args[1]);
 		String localUrlStr = args[2];
