@@ -16,6 +16,7 @@ public class FillList {
 		assertTrue(sm.getFieldsWithShips().size()==10);
 	}
 	
+	//Sind Spieler Felder zugeordnet?
 	
 
 }

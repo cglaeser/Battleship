@@ -25,7 +25,8 @@ public class StatisticsManager implements NotifyCallback{
 	private Map<ID, Player> idToPlayer = new HashMap<ID, Player>();
 	private Chord chord;
 	private Set<Integer> fieldsWithShips;
-	private Set<ID> shotsFired = new HashSet<ID>();
+	//Our shots
+	private Set<ID> ourShotsFired = new HashSet<ID>();
 	
 	public StatisticsManager() throws ServiceException{
 		this.shipsPerPlayer = 10;
@@ -72,8 +73,8 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			hitPlayer.shot(target, hit);
 			preparePlayer();//Sets startfield of player
-			if(shotsFired.contains(target)){
-				shotsFired.remove(target);
+			if(ourShotsFired.contains(target)){
+				ourShotsFired.remove(target);
 				if(hitPlayer.getNrHits() == shipsPerPlayer){
 					//TODO I won -> Logger Win!!!
 				}
@@ -108,6 +109,7 @@ public class StatisticsManager implements NotifyCallback{
 	 */
 	private void shoot(List<Player> player){
 		//TODO add to shotsfired
+		//select player != us
 	}
 	
 	private boolean isHit(ID target){
@@ -125,6 +127,10 @@ public class StatisticsManager implements NotifyCallback{
 	
 	public Set<Integer> getFieldsWithShips(){
 		return fieldsWithShips;
+	}
+	
+	public Player self(){
+		return idToPlayer.get(chord.getID());
 	}
 
 }
