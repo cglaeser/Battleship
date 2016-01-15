@@ -10,6 +10,7 @@ import player.Player;
 import de.uniba.wiai.lspi.chord.data.ID;
 import de.uniba.wiai.lspi.chord.service.Chord;
 import de.uniba.wiai.lspi.chord.service.NotifyCallback;
+import de.uniba.wiai.lspi.chord.service.ServiceException;
 
 /**
  * To retrieve Informations
@@ -23,6 +24,12 @@ public class StatisticsManager implements NotifyCallback{
 	private Map<ID, Player> player = new HashMap<ID, Player>();
 	private Chord chord;
 	private Set<Integer> fieldsWithShips = new HashSet<Integer>();
+	
+	public StatisticsManager() throws ServiceException{
+		this.shipsPerPlayer = 10;
+		this.fieldsPerPlayer = 100;
+		this.chord = Main.getChordInstance();
+	}
 	
 	public StatisticsManager(Chord chord, int shipsPerPlayer, int fieldsPerPlayer){
 		this.shipsPerPlayer = shipsPerPlayer;
