@@ -15,7 +15,7 @@ public class LogicTests {
 	public void initializeTest() throws IOException, ServiceException{
 		Main main = new Main();
 		System.out.println(main.getProperty("localURL"));
-		main.main(new String[]{});
+		//main.main(new String[]{});
 	}
 
 }
