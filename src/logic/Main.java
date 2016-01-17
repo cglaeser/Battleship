@@ -18,6 +18,7 @@ public class Main {
 
 	private static Map<String,String> propertyMap = null;
 	private static ChordImpl chord = null;
+	private static String propertyFile = "battleship.properties";
 	public static int NR_BITS_ID = 160;
 	public static BigInteger MAX_ID = BigInteger.valueOf(2).pow(NR_BITS_ID).subtract(BigInteger.ONE);
 	
@@ -34,7 +35,7 @@ public class Main {
 			propertyMap = new HashMap<String,String>();
 		Properties properties = new Properties();
 		ClassLoader loader = Main.class.getClassLoader();
-        properties.load(loader.getResourceAsStream("battleship.properties"));
+        properties.load(loader.getResourceAsStream(propertyFile));
 		for (String key : properties.stringPropertyNames()) {
 		    String value = properties.getProperty(key);
 		    propertyMap.put(key, value);
@@ -48,6 +49,9 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws IOException, MalformedURLException, ServiceException {
+		if(args.length > 0){
+			propertyFile = args[0];
+		}
 		ChordImpl chord = getChordInstance();
 		int shipsPerPlayer = Integer.parseInt(getProperty("shipsPerPlayer"));
 		int fieldsPerPlayer = Integer.parseInt(getProperty("fieldsPerPlayer"));
@@ -55,8 +59,8 @@ public class Main {
 		StatisticsManager sm = new StatisticsManager(chord, shipsPerPlayer, fieldsPerPlayer);
 		chord.setCallback(sm);
 		URL localURL = new URL("ocsocket://"+localUrlStr+"/");
-		if(args.length > 3){
-			String bootstrapUrlStr = getProperty("bootstrapURL");
+		String bootstrapUrlStr = getProperty("bootstrapURL");
+		if(bootstrapUrlStr != null && bootstrapUrlStr.length() > 0){
 			URL bootstrapUrl = new URL("ocsocket://"+bootstrapUrlStr);
 			chord.join(localURL, bootstrapUrl);
 		}else{
