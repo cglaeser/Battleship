@@ -23,6 +23,7 @@ public class Main {
 	private static Map<String,Logger> loggerMap = new HashMap<String, Logger>();
 	private static String logFile = null;
 	private static ChordImpl chord = null;
+	private static FileHandler fHandler = null;
 	private static String propertyFile = "battleship.properties";
 	private static Logger logger = null;
 	public static int NR_BITS_ID = 160;
@@ -71,7 +72,10 @@ public class Main {
 			logger = Logger.getLogger(name);
 			if(logFile != null && logFile.length() > 0){
 				try {//Add FileHandler if outputfile is set
-					logger.addHandler(new FileHandler(logFile));
+					if(fHandler == null){
+						fHandler = new FileHandler(logFile);
+					}
+					logger.addHandler(fHandler);
 				} catch (SecurityException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -96,6 +100,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, MalformedURLException, ServiceException {
 		try{
+			Logger.getGlobal().setLevel(Level.INFO);
 			if(args.length > 0){//Overwrite default property file if another one is given by the player
 				propertyFile = args[0];
 			}

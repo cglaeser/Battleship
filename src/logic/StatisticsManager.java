@@ -110,7 +110,7 @@ public class StatisticsManager implements NotifyCallback{
 	private void initPlayerMap() {
 		ID ownId = chord.getID();
 		ID predId = chord.getPredecessorID();
-		logger.info("Initialisation of player map: Your Range: From "+predId.toBigInteger().add(BigInteger.ONE)+" to "+ownId);
+		logger.info("Initialisation of player map: Your Range: From "+predId.toBigInteger().add(BigInteger.ONE)+" to "+ownId.toBigInteger());
 		idToPlayer.put(ownId, new Player(ownId, shipsPerPlayer, fieldsPerPlayer));
 		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
