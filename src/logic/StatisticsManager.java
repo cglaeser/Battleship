@@ -63,11 +63,11 @@ public class StatisticsManager implements NotifyCallback{
 			hit = isHit(target);
 			self().shot(target, hit);
 			logger.info("Shot at: "+target+"; Was hit?: "+hit);
+			chord.broadcastAsync(target, hit);
 			preparedPlayer = preparePlayer();
 			logPlayerState(preparedPlayer);
+			shoot(preparedPlayer);		
 		}
-		chord.broadcast(target, hit);
-		shoot(preparedPlayer);		
 	}
 
 	/**
