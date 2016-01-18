@@ -85,6 +85,9 @@ public class Player implements Comparable<Player>{
 				unusedFields.add(i);
 			}
 		}
+		if(unusedFields.size() == 0){
+			return null;
+		}
 		Random r = new Random();
 		int fieldNr = unusedFields.get(r.nextInt(unusedFields.size()));
 		
@@ -122,13 +125,37 @@ public class Player implements Comparable<Player>{
 	public void setStartField(ID startField){
 		this.startField = startField;
 	}
+	
+	public int getRemainingShips(){
+		return nrShips-getNrHits();
+	}
 
 	@Override
 	public int compareTo(Player otherPlayer) {
 		return id.compareTo(otherPlayer.getId());
 	}
 	
-	public int getRemainingShips(){
-		return nrShips-getNrHits();
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Player other = (Player) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 }

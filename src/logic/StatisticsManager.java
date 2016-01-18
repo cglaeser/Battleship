@@ -3,6 +3,7 @@ package logic;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,14 +64,14 @@ public class StatisticsManager implements NotifyCallback{
 	@Override
 	public void broadcast(ID source, ID target, Boolean hit) {
 		synchronized (this) {
-			//füge uns + succ + pred zur PlayerMap hinzu
+			//fÃ¼ge uns + succ + pred zur PlayerMap hinzu
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			if(hitPlayer == null){
 				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
-				//neuen spieler zur spielermap hinzufügen
+				//neuen spieler zur spielermap hinzufÃ¼gen
 				idToPlayer.put(source, hitPlayer);
 			}
 			hitPlayer.shot(target, hit);
@@ -127,19 +128,50 @@ public class StatisticsManager implements NotifyCallback{
 	 * @param player
 	 */
 	private void shoot(List<Player> player){
-		//TODO add to shotsfired
-		//select player != us
+		Collections.sort(player, new KillSelector());
+		int playerIndex = 0;
+		Player playerToShootAt = player.get(playerIndex);
+		if(playerToShootAt.equals(self())){
+			playerIndex++;
+			playerToShootAt = player.get(playerIndex);
+		}
+		ID fieldToShootAt;
+		do{
+			fieldToShootAt = playerToShootAt.getRandomNonShootField();
+			if(fieldToShootAt == null){
+				playerIndex++;
+				if(playerIndex < player.size()){
+					playerToShootAt = player.get(playerIndex);
+				}else{//No field found -> choose a random field -> shouldn't happen actually
+					Random r = new Random();
+					Player self = self();
+					BigInteger selfStart = self.getStartField().toBigInteger();
+					BigInteger selfEnd = self.getId().toBigInteger();
+					BigInteger fieldNrToShootAt;
+					do{
+						fieldNrToShootAt = new BigInteger(Main.NR_BITS_ID, r);
+					}while(fieldNrToShootAt.compareTo(selfStart) < 0 && fieldNrToShootAt.compareTo(selfEnd) > 0);
+				}
+			}			
+		}while(fieldToShootAt == null);
+		chord.retrieve(fieldToShootAt);
 	}
 	
 	private boolean isHit(ID target){
 		return false;
 	}
 	
-	private Set<Integer> fillFields(int ships, int fields){
+	private Set<Integer> fillFields(int nrShips, int nrFields){
 		Set<Integer> fieldsWithShips = new HashSet<Integer>();
+		List<Integer> fields = new ArrayList<Integer>();
+		for(int i = 0; i < nrFields; i++){
+			fields.add(i);
+		}
 		Random r = new Random();
-		while(fieldsWithShips.size()< ships){
-			fieldsWithShips.add(r.nextInt(fields));
+		for(int i = 0; i < nrShips; i++){
+			int fIndex = r.nextInt(fields.size());
+			fieldsWithShips.add(fields.get(fIndex));
+			fields.remove(fIndex);
 		}
 		return fieldsWithShips;
 	}
@@ -150,6 +182,26 @@ public class StatisticsManager implements NotifyCallback{
 	
 	public Player self(){
 		return idToPlayer.get(chord.getID());
+	}
+	
+	private class KillSelector implements Comparator<Player>{
+
+		@Override
+		public int compare(Player o1, Player o2) {
+			if(o1.getNrHits() > o2.getNrHits()){
+				return -1;
+			}else if(o2.getNrHits() > o1.getNrHits()){
+				return 1;
+			}else{
+				if(o1.getNrMisses() > o2.getNrMisses()){
+					return -1;
+				}else if(o2.getNrMisses() > o1.getNrMisses()){
+					return 1;
+				}else{
+					return 0;
+				}
+			}
+		}
 	}
 
 }
