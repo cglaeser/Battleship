@@ -4,7 +4,7 @@
 \usepackage[ngerman,english]{babel}
 
 %opening
-\title{}
+\title{Dokumentation - TTV Praktikum 3\&4}
 \author{Allers, Sven \& Gläser, Christian}
 
 \begin{document}
@@ -20,6 +20,20 @@ Aus der Konsole aufrufen mit folgenden Parametern:
 programname[]
 
 \section{Spielstrategie}
-TODO
-
+\subsection{Auswahl des Opponenten für das Ziel}
+(Zu finden in: StatisticsManager-Killselector)\newline
+Alle Spieler haben zum Spielbeginn die gleiche Anzahl Schiffe. \newline
+Ausgewählt wird in jeder Runde der Gegner, der die meisten Anzahl an getroffenen Schiffen hat.\newline
+Bei gleicher Anzahl an getroffener Schiffe wird als nächstes Kriterium die Anzahl der nicht getroffenen Felder berücksichtigt.\newline
+Bei gleicher Anzahl an nicht getroffenen Feldern wird die Nachbarschaft berücksichtigt, die Nähe im Uhrzeigersinn ist ein eindeutiges Selektionskriterium.
+\subsection{Auswahl des Feldes}
+\begin{enumerate}
+	\item Startfelder der Spieler werden geschätzt. Grundlage: Empfangene Nachrichten
+		\subitem Spieler werden nach ID sortiert
+		\subitem Startfeld = ID des Vorgängers + 1
+		\subitem Endfeld = ID des Spielers
+	\item Berechnung: Welche logischen Felder wurden getroffen
+	\item Berechnung: Zufällige Auswahl eines noch nicht getroffenen Feldes
+	\item In die Mitte des Feldes, welches aus mehreren Chord-IDs besteht wird ein Schuss abgesetzt.
+\end{enumerate}
 \end{document}
