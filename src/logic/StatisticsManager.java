@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import player.Player;
 import de.uniba.wiai.lspi.chord.com.Node;
@@ -30,6 +32,8 @@ public class StatisticsManager implements NotifyCallback{
 	private Map<ID, Player> idToPlayer = new HashMap<ID, Player>();
 	private ChordImpl chord;
 	private Set<Integer> fieldsWithShips;
+	private Logger logger = Main.getLogger(StatisticsManager.class.getName());
+	
 	//Our shots
 	private Set<ID> ourShotsFired = new HashSet<ID>();
 	
@@ -47,14 +51,18 @@ public class StatisticsManager implements NotifyCallback{
 	@Override
 	public void retrieved(ID target) {
 		synchronized (this) {
+			logger.info("Retrieved shoot at "+target);
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			fillWithFingertable();
 		}
 		boolean hit = isHit(target);
+		logger.info("Shot at: "+target+"; Was hit?: "+hit);
 		chord.broadcast(target, hit);
-		shoot(preparePlayer());		
+		List<Player> preparedPlayer = preparePlayer();
+		logPlayerState(preparedPlayer);
+		shoot(preparedPlayer);		
 	}
 
 	/**
@@ -64,28 +72,32 @@ public class StatisticsManager implements NotifyCallback{
 	@Override
 	public void broadcast(ID source, ID target, Boolean hit) {
 		synchronized (this) {
-			//füge uns + succ + pred zur PlayerMap hinzu
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			Player hitPlayer = idToPlayer.get(source);
+			logger.info("Retrieved broadcast: Player: "+source+"; Field: "+target+"; Hit: "+ hit);
 			if(hitPlayer == null){
+				logger.info("New player found: "+source);
 				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
 				//neuen spieler zur spielermap hinzufügen
 				idToPlayer.put(source, hitPlayer);
 			}
 			hitPlayer.shot(target, hit);
-			preparePlayer();//Sets startfield of player
+			List<Player> preparedPlayer = preparePlayer();//Sets startfield of player
+			logPlayerState(preparedPlayer);
 			if(ourShotsFired.contains(target)){
+				logger.info("Shot at Player: "+source+"; Field: "+target+"; Hit: "+hit+" was from you.");
 				ourShotsFired.remove(target);
 				if(hitPlayer.getRemainingShips() == 0){
-					//TODO I won -> Logger Win!!!
+					logger.log(Level.SEVERE, "You won!!!");
 				}
 			}
 		}		
 	}
 	
 	public void firstShoot(){
+		logger.info("First shot is from you");
 		if(idToPlayer.isEmpty()){//First time action
 			initPlayerMap();
 		}
@@ -95,20 +107,24 @@ public class StatisticsManager implements NotifyCallback{
 	private void initPlayerMap() {
 		ID ownId = chord.getID();
 		ID predId = chord.getPredecessorID();
+		logger.info("Initialisation of player map: Your Range: From "+predId.toBigInteger().add(BigInteger.ONE)+" to "+ownId);
 		idToPlayer.put(ownId, new Player(ownId, shipsPerPlayer, fieldsPerPlayer));
 		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
 	
 	private void fillWithFingertable(){
+		logger.info("Check fingertable");
 		for(Node node:chord.getFingerTable()){
 			if(!idToPlayer.containsKey(node.getNodeID())){
 				ID nodeId = node.getNodeID();
+				logger.info("New player found: "+nodeId);
 				idToPlayer.put(nodeId, new Player(nodeId, shipsPerPlayer, fieldsPerPlayer));
 			}
 		}
 	}
 	
 	private List<Player> preparePlayer(){
+		logger.info("Prepare player");
 		fillWithFingertable();
 		List<Player> player = new ArrayList<Player>(idToPlayer.values());
 		Collections.sort(player);
@@ -120,6 +136,7 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			p.setStartField(ID.valueOf(newId));
 			lastId = p.getId();
+			logger.info("New range of player "+p.getId()+": From "+newId+" to "+lastId);
 		}
 		return player;
 	}
@@ -128,6 +145,7 @@ public class StatisticsManager implements NotifyCallback{
 	 * @param player
 	 */
 	private void shoot(List<Player> player){
+		logger.info("Shoot player");
 		Collections.sort(player, new KillSelector());
 		int playerIndex = 0;
 		Player playerToShootAt = player.get(playerIndex);
@@ -135,14 +153,19 @@ public class StatisticsManager implements NotifyCallback{
 			playerIndex++;
 			playerToShootAt = player.get(playerIndex);
 		}
+		logger.info("Player to shoot at "+playerToShootAt.getId());
 		ID fieldToShootAt;
 		do{
 			fieldToShootAt = playerToShootAt.getRandomNonShootField();
+			logger.info("Field to shoot at "+fieldToShootAt);
 			if(fieldToShootAt == null){
+				logger.info("Field was null");
 				playerIndex++;
 				if(playerIndex < player.size()){
 					playerToShootAt = player.get(playerIndex);
+					logger.info("Player to shoot at "+playerToShootAt.getId());
 				}else{//No field found -> choose a random field -> shouldn't happen actually
+					logger.info("No field found: Shoot randomly");
 					Random r = new Random();
 					Player self = self();
 					BigInteger selfStart = self.getStartField().toBigInteger();
@@ -151,10 +174,12 @@ public class StatisticsManager implements NotifyCallback{
 					do{
 						fieldNrToShootAt = new BigInteger(Main.NR_BITS_ID, r);
 					}while(fieldNrToShootAt.compareTo(selfStart) < 0 && fieldNrToShootAt.compareTo(selfEnd) > 0);
+					fieldToShootAt = ID.valueOf(fieldNrToShootAt);
+					logger.info("Random field: "+fieldNrToShootAt);
 				}
 			}			
 		}while(fieldToShootAt == null);
-		chord.retrieve(fieldToShootAt);
+		chord.retrieveAsync(fieldToShootAt);
 	}
 	
 	private boolean isHit(ID target){
@@ -162,6 +187,7 @@ public class StatisticsManager implements NotifyCallback{
 	}
 	
 	private Set<Integer> fillFields(int nrShips, int nrFields){
+		logger.info("Fill fields with ships");
 		Set<Integer> fieldsWithShips = new HashSet<Integer>();
 		List<Integer> fields = new ArrayList<Integer>();
 		for(int i = 0; i < nrFields; i++){
@@ -173,6 +199,7 @@ public class StatisticsManager implements NotifyCallback{
 			fieldsWithShips.add(fields.get(fIndex));
 			fields.remove(fIndex);
 		}
+		logger.info("Fields with ships: "+fieldsWithShips);
 		return fieldsWithShips;
 	}
 	
@@ -182,6 +209,13 @@ public class StatisticsManager implements NotifyCallback{
 	
 	public Player self(){
 		return idToPlayer.get(chord.getID());
+	}
+	
+	private void logPlayerState(List<Player> player){
+		logger.info("Current player states:");
+		for(Player p:player){
+			logger.info("Player: "+p.getId()+"; Hits: "+p.getNrHits()+"; Misses: "+p.getNrMisses()+"; Remaining: "+p.getRemainingShips());
+		}
 	}
 	
 	private class KillSelector implements Comparator<Player>{
@@ -198,7 +232,22 @@ public class StatisticsManager implements NotifyCallback{
 				}else if(o2.getNrMisses() > o1.getNrMisses()){
 					return 1;
 				}else{
-					return 0;
+					BigInteger distO1 = BigInteger.ZERO;
+					BigInteger distO2 = BigInteger.ZERO;
+					BigInteger selfId = self().getId().toBigInteger();
+					BigInteger o1Id = o1.getId().toBigInteger();
+					BigInteger o2Id = o2.getId().toBigInteger();
+					if(o1Id.compareTo(selfId) > 0){
+						distO1 = o1Id.subtract(selfId);
+					}else if(o1Id.compareTo(selfId) < 0){
+						distO1 = o1Id.add(selfId);
+					}
+					if(o2Id.compareTo(selfId) > 0){
+						distO2 = o2Id.subtract(selfId);
+					}else if(o2Id.compareTo(selfId) < 0){
+						distO2 = o2Id.add(selfId);
+					}
+					return distO1.compareTo(distO2);
 				}
 			}
 		}
