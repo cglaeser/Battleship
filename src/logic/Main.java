@@ -124,9 +124,9 @@ public class Main {
 				chord.create(localURL, ID.valueOf(MAX_ID));
 			}
 			logger.info("Battleship started: Your ID is "+chord.getID());
-			if(chord.getID().toBigInteger().equals(MAX_ID)){
-				System.out.println("Press any key to start");
-				System.in.read();
+			System.out.println("Press any key to start");
+			System.in.read();
+			if(ID.valueOf(MAX_ID).isInInterval(chord.getPredecessorID(), chord.getID()) || MAX_ID.equals(chord.getID().toBigInteger())){
 				sm.firstShoot();
 			}
 		} catch(Exception e){
