@@ -1,16 +1,8 @@
 package player;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.mp3transform.Decoder;
-
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javazoom.jlgui.basicplayer.BasicPlayer;
 import javazoom.jlgui.basicplayer.BasicPlayerException;
 
