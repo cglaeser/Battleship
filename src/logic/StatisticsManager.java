@@ -60,7 +60,7 @@ public class StatisticsManager implements NotifyCallback{
 			fillWithFingertable();
 			boolean hit = isHit(target);
 			logger.info("Shot at: "+target+"; Was hit?: "+hit);
-			chord.broadcast(target, hit);
+			chord.broadcastAsync(target, hit);
 			List<Player> preparedPlayer = preparePlayer();
 			logPlayerState(preparedPlayer);
 			self().shot(target, hit);
