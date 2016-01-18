@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import player.Player;
+import player.SoundEffect;
 import de.uniba.wiai.lspi.chord.com.Node;
 import de.uniba.wiai.lspi.chord.data.ID;
 import de.uniba.wiai.lspi.chord.service.NotifyCallback;
@@ -92,6 +93,7 @@ public class StatisticsManager implements NotifyCallback{
 				ourShotsFired.remove(target);
 				if(hitPlayer.getRemainingShips() == 0){
 					logger.log(Level.SEVERE, "You won!!!");
+					SoundEffect.WON.play();
 				}
 			}
 		}		
