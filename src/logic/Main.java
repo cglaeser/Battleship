@@ -80,13 +80,17 @@ public class Main {
 			logFile = getProperty("logFile");
 			logger = getLogger(ChordImpl.class.getName());
 			logger.info("Battleship is starting");
-			ChordImpl chord = getChordInstance();
 			int shipsPerPlayer = Integer.parseInt(getProperty("shipsPerPlayer"));
+			logger.info("Ships per player: "+shipsPerPlayer);
 			int fieldsPerPlayer = Integer.parseInt(getProperty("fieldsPerPlayer"));
+			logger.info("Fields per player: "+fieldsPerPlayer);
 			String localUrlStr = getProperty("localURL");
+			URL localURL = new URL("ocsocket://"+localUrlStr+"/");
+			logger.info("Local URL: "+localUrlStr);
+
+			ChordImpl chord = getChordInstance();
 			StatisticsManager sm = new StatisticsManager(chord, shipsPerPlayer, fieldsPerPlayer);
 			chord.setCallback(sm);
-			URL localURL = new URL("ocsocket://"+localUrlStr+"/");
 			String bootstrapUrlStr = getProperty("bootstrapURL");
 			if(bootstrapUrlStr != null && bootstrapUrlStr.length() > 0){
 				URL bootstrapUrl = new URL("ocsocket://"+bootstrapUrlStr);
