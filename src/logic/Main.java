@@ -20,7 +20,7 @@ public class Main {
 	
 
 	private static Map<String,String> propertyMap = null;
-	private static Map<String,Logger> loggerMap = null;
+	private static Map<String,Logger> loggerMap = new HashMap<String, Logger>();
 	private static String logFile = null;
 	private static ChordImpl chord = null;
 	private static String propertyFile = "battleship.properties";
@@ -49,13 +49,13 @@ public class Main {
 	private static void loadPropertiesInstance() throws IOException{
 		if(propertyMap == null){
 			propertyMap = new HashMap<String,String>();
-		Properties properties = new Properties();
-		ClassLoader loader = Main.class.getClassLoader();
-        properties.load(loader.getResourceAsStream(propertyFile));
-		for (String key : properties.stringPropertyNames()) {
-		    String value = properties.getProperty(key);
-		    propertyMap.put(key, value);
-		}
+			Properties properties = new Properties();
+			ClassLoader loader = Main.class.getClassLoader();
+	        properties.load(loader.getResourceAsStream(propertyFile));
+			for (String key : properties.stringPropertyNames()) {
+			    String value = properties.getProperty(key);
+			    propertyMap.put(key, value);
+			}
 		}
 	}
 	
@@ -66,7 +66,7 @@ public class Main {
 	 * @return
 	 */
 	public static Logger getLogger(String name){
-		Logger logger = Logger.getLogger(name);
+		Logger logger = loggerMap.get(name);
 		if(logger == null){
 			logger = Logger.getLogger(name);
 			if(logFile != null && logFile.length() > 0){
