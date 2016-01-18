@@ -126,7 +126,7 @@ public class Main {
 				chord.join(localURL, bootstrapUrl);
 			}else{
 				logger.info("Create bootstrap node on "+localURL);
-				chord.create(localURL, ID.valueOf(MAX_ID));
+				chord.create(localURL);
 			}
 			logger.info("Battleship started: Your ID is "+chord.getID());
 			System.out.println("Press any key to start");

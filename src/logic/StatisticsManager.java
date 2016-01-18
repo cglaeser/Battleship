@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import player.Player;
+import player.Player.Field;
 import player.SoundEffect;
 import de.uniba.wiai.lspi.chord.com.Node;
 import de.uniba.wiai.lspi.chord.data.ID;
@@ -139,7 +140,7 @@ public class StatisticsManager implements NotifyCallback{
 			}
 			p.setStartField(ID.valueOf(newId));
 			lastId = p.getId();
-			logger.info("New range of player "+p.getId()+": From "+newId+" to "+lastId);
+			logger.info("New range of player "+p.getId()+": From "+newId+" to "+lastId.toBigInteger());
 		}
 		return player;
 	}
@@ -217,7 +218,11 @@ public class StatisticsManager implements NotifyCallback{
 	private void logPlayerState(List<Player> player){
 		logger.info("Current player states:");
 		for(Player p:player){
-			logger.info("Player: "+p.getId()+"; Hits: "+p.getNrHits()+"; Misses: "+p.getNrMisses()+"; Remaining: "+p.getRemainingShips());
+			String logStr = "Player: "+p.getId()+"; Hits: "+p.getNrHits()+"; Misses: "+p.getNrMisses()+"; Remaining: "+p.getRemainingShips()+"; Contradictions: "+p.getNrContradictions()+"\n";
+			for(Field f:p.getFields()){
+				logStr += f+"\n";
+			}
+			logger.info(logStr);			
 		}
 	}
 	
