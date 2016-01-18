@@ -52,20 +52,22 @@ public class StatisticsManager implements NotifyCallback{
 
 	@Override
 	public void retrieved(ID target) {
+		boolean hit;
+		List<Player> preparedPlayer;
 		synchronized (this) {
 			logger.info("Retrieved shoot at "+target);
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			fillWithFingertable();
-			boolean hit = isHit(target);
-			logger.info("Shot at: "+target+"; Was hit?: "+hit);
-			chord.broadcastAsync(target, hit);
-			List<Player> preparedPlayer = preparePlayer();
-			logPlayerState(preparedPlayer);
+			hit = isHit(target);
 			self().shot(target, hit);
-			shoot(preparedPlayer);		
+			logger.info("Shot at: "+target+"; Was hit?: "+hit);
+			preparedPlayer = preparePlayer();
+			logPlayerState(preparedPlayer);
 		}
+		chord.broadcast(target, hit);
+		shoot(preparedPlayer);		
 	}
 
 	/**

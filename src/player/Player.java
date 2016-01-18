@@ -16,11 +16,11 @@ import de.uniba.wiai.lspi.chord.data.ID;
 
 public class Player implements Comparable<Player>{
 	
-	private ID id;
+	private final ID id;
 	private ID startField = null;
-	private int nrFields;
-	private int nrShips;
-	private Map<ID, Boolean> hits = new HashMap<ID, Boolean>();
+	private final int nrFields;
+	private final int nrShips;
+	private final Map<ID, Boolean> hits = new HashMap<ID, Boolean>();
 	
 	//Cache fields
 	private Integer nrHitsCache = null;
