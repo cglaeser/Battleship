@@ -16,9 +16,11 @@ import de.uniba.wiai.lspi.chord.service.PropertiesLoader;
 import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
+/**
+ * @author Allers / Glaeser
+ * Game instantiation class
+ */
 public class Main {
-	
-
 	private static Map<String,String> propertyMap = null;
 	private static Map<String,Logger> loggerMap = new HashMap<String, Logger>();
 	private static String logFile = null;
@@ -98,6 +100,13 @@ public class Main {
 		return propertyMap.get(propertyName);	
 	}
 
+	/**
+	 * @param args
+	 * @throws IOException If file can't be opened
+	 * @throws MalformedURLException If URL in Property File is in an incorrect format 
+	 * @throws ServiceException If chord throws an exception
+	 * Start the game
+	 */
 	public static void main(String[] args) throws IOException, MalformedURLException, ServiceException {
 		try{
 			Logger.getGlobal().setLevel(Level.INFO);

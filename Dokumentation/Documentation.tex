@@ -12,13 +12,23 @@
 \maketitle
 
 \begin{abstract}
-
+Informationen zum Start des Programs
 \end{abstract}
-
-\section{Initialisierung}
-Aus der Konsole aufrufen mit folgenden Parametern:
-programname[]
-
+\section{Konfiguration}
+In Eclipse werden die 2 Projekte Battleship und OpenChord benötigt.
+\section{Spielablauf}
+\subsection{Konfiguration battleship.properties}
+fieldsPerPlayer=Normalerweise 100\newline
+shipsPerPlayer=Normalerweise 10\newline
+localURL=Die externe IP des eigenen Devices\newline
+bootstrapURL=Optional, IP des Knotenzuweisenden Devices\newline
+logFile=Name der Logdatei
+Config-File einstellen:\newline
+\subsection{Start des Programs}
+In Eclipse starten und Enter drücken um Spielablauf zu starten. Program gibt einen Schuss ab, wenn die höchste Chord-ID zugewiesen wurde.\newline
+Sonst: Warten auf Schuss in den eigenen Bereich.
+\subsection{Spielablauf}
+Das Spiel gibt durch audiovisuelle Signale Hinweise auf den Spielzustand.\newline Zusätzlich lässt sich durch Konsolenausgaben der Spielstatus ermitteln
 \section{Spielstrategie}
 \subsection{Auswahl des Opponenten für das Ziel}
 (Zu finden in: StatisticsManager-Killselector)\newline
