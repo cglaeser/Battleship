@@ -33,7 +33,7 @@ public class StatisticsManager implements NotifyCallback{
 	private Map<ID, Player> idToPlayer = new HashMap<ID, Player>();
 	private ChordImpl chord;
 	private Set<Integer> fieldsWithShips;
-	private Logger logger;
+	private Logger logger = Main.getLogger(StatisticsManager.class.getName());
 	
 	//Our shots
 	private Set<ID> ourShotsFired = new HashSet<ID>();
@@ -43,7 +43,6 @@ public class StatisticsManager implements NotifyCallback{
 	}
 	
 	public StatisticsManager(ChordImpl chord, int shipsPerPlayer, int fieldsPerPlayer){
-		this.logger = Main.getLogger(StatisticsManager.class.getName());
 		this.shipsPerPlayer = shipsPerPlayer;
 		this.fieldsPerPlayer = fieldsPerPlayer;
 		this.chord = chord;

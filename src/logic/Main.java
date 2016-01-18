@@ -126,7 +126,7 @@ public class Main {
 			logger.info("Battleship started: Your ID is "+chord.getID());
 			if(chord.getID().toBigInteger().equals(MAX_ID)){
 				System.out.println("Press any key to start");
-				System.console().readLine();
+				System.in.read();
 				sm.firstShoot();
 			}
 		} catch(Exception e){
