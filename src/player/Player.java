@@ -14,12 +14,19 @@ import java.util.function.Predicate;
 import logic.Main;
 import de.uniba.wiai.lspi.chord.data.ID;
 
+/**
+ * The player class maps the known data of single players
+ * @author Sven
+ *
+ */
 public class Player implements Comparable<Player>{
 	
 	private final ID id;
+	//Estimated start field
 	private ID startField = null;
 	private final int nrFields;
 	private final int nrShips;
+	//Maps all shots fired to the player. FieldId => hit
 	private final Map<ID, Boolean> hits = new HashMap<ID, Boolean>();
 	
 	//Cache fields
@@ -34,7 +41,11 @@ public class Player implements Comparable<Player>{
 		this.nrShips = nrShips;
 		this.nrFields = nrFields;
 	}
-	//Achtung: Wir sind in einem Ring!!!!!
+	
+	/**
+	 * Nr of hits made on logical fields
+	 * @return
+	 */
 	public int getNrHits(){
 		if(startField == null){
 			return 0;
@@ -46,6 +57,10 @@ public class Player implements Comparable<Player>{
 		}
 	}
 	
+	/**
+	 * Nr of missed shots on logical fields
+	 * @return
+	 */
 	public int getNrMisses(){
 		if(startField == null){
 			return 0;
@@ -57,6 +72,11 @@ public class Player implements Comparable<Player>{
 		}
 	}
 	
+	/**
+	 * Nr of logical fields with contradictory informations. This can happen
+	 * if we estimated the borders wrong.
+	 * @return
+	 */
 	public int getNrContradictions(){
 		if(startField == null){
 			return 0;
@@ -68,19 +88,28 @@ public class Player implements Comparable<Player>{
 		}
 	}
 	
+	/**
+	 * Records a shot made to a field of the player.
+	 * @param Field
+	 * @param hit
+	 */
 	public void shot(ID Field, boolean hit){
 		if(!hits.containsKey(Field)){
-			resetCache();
+			resetCache();//Reset cache values -> the estimations could be wrong, since there are new informations available
 			hits.put(Field, hit);
 		}
 	}
 	
+	/**
+	 * Chooses a random field. which was not shot before.
+	 * @return
+	 */
 	public ID getRandomNonShootField(){
 		Random r = new Random();
 		List<Field> virgins = filterFields(field -> FieldState.VIRGIN.equals(field.state));
 		if(virgins.size() > 0){
 			Field maria = virgins.get(r.nextInt(virgins.size()));
-			return ID.valueOf(calcMiddle(maria.chordFrom, maria.chordTo));
+			return ID.valueOf(calcMiddle(maria.chordFrom, maria.chordTo));//Choose the center of the field
 		}else{
 			return null;
 		}
@@ -100,7 +129,7 @@ public class Player implements Comparable<Player>{
 	}
 	public void setStartField(ID startField){
 		if(!Objects.equals(startField, this.startField)){
-			resetCache();
+			resetCache();//Reset cache values -> the estimations could be wrong, since there are new informations available
 			this.startField = startField;
 		}		
 	}
@@ -120,6 +149,12 @@ public class Player implements Comparable<Player>{
 		}
 	}
 	
+	/**
+	 * Calculates the center of a range
+	 * @param from
+	 * @param to
+	 * @return
+	 */
 	private BigInteger calcMiddle(BigInteger from, BigInteger to){
 		if(from.compareTo(to) < 0){
 			return from.add(to).divide(BigInteger.valueOf(2)).mod(Main.MAX_ID);
@@ -134,6 +169,11 @@ public class Player implements Comparable<Player>{
 		return filterFields(field -> field.state.equals(state)).size();
 	}
 	
+	/**
+	 * Filters the fields by the given condition.
+	 * @param condition
+	 * @return
+	 */
 	private List<Field> filterFields(Predicate<Field> condition){
 		
 		List<Field> filteredFields = new ArrayList<>(getFields());
@@ -148,6 +188,10 @@ public class Player implements Comparable<Player>{
 		return filteredFields;
 	}
 	
+	/**
+	 * Returns the current field. Calculates a new one if none is available.
+	 * @return
+	 */
 	public List<Field> getFields(){
 		if(this.fieldsCache == null && this.startField != null){
 			BigInteger start = startField.toBigInteger();
@@ -156,25 +200,26 @@ public class Player implements Comparable<Player>{
 				start = start.subtract(Main.MAX_ID);
 			}
 			BigInteger length = end.subtract(start).add(BigInteger.ONE);
-			BigInteger rangeSize = length.divide(BigInteger.valueOf(nrFields));
+			BigInteger rangeSize = length.divide(BigInteger.valueOf(nrFields));//Size of the fields
 			
 			List<Field> newFieldsCache = new ArrayList<>();
 			List<ID> hittedFieldsSorted = new ArrayList<>(hits.keySet());
-			ringSort(hittedFieldsSorted);
+			ringSort(hittedFieldsSorted);//So that the start is at the beginning
 			int sortedI = 0;
 			for(int i=0; i<this.nrFields; i++){
 				BigInteger startField = this.startField.toBigInteger().add(rangeSize.multiply(BigInteger.valueOf(i))).mod(Main.MAX_ID);
 				BigInteger endField = startField.add(rangeSize).subtract(BigInteger.ONE).mod(Main.MAX_ID);
 				Field field = new Field(i, FieldState.VIRGIN, startField, endField);
+				//Check the state of the known Chord-Ids on the field
 				for(;sortedI<hittedFieldsSorted.size();sortedI++){
 					ID hittedField = hittedFieldsSorted.get(sortedI);
 					BigInteger hittedFieldBI = hittedField.toBigInteger();
 					if(field.isInside(hittedFieldBI)){
-						if(field.state.equals(FieldState.VIRGIN)){
+						if(field.state.equals(FieldState.VIRGIN)){//First id with a known state
 							field.state = getFieldState(hits.get(hittedField));
 						}else if(!field.state.equals(FieldState.CONTRADICTORY)){
 							FieldState newState = getFieldState(hits.get(hittedField));
-							if(!newState.equals(field.state)){
+							if(!newState.equals(field.state)){//There are two ids with different states on one field -> contradiction
 								field.state = FieldState.CONTRADICTORY;
 							}
 						}
@@ -225,6 +270,11 @@ public class Player implements Comparable<Player>{
 		resetCache(true, true);
 	}
 	
+	/**
+	 * Sets all cache data, which are the estimated values, to null.
+	 * @param hitCache
+	 * @param missCache
+	 */
 	private void resetCache(boolean hitCache, boolean missCache){
 		nrHitsCache = null;
 		nrMissesCache = null;

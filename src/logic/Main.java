@@ -139,7 +139,8 @@ public class Main {
 			}
 			logger.info("Battleship started: Your ID is "+chord.getID());
 			System.out.println("Press any key to start");
-			System.in.read();
+			System.in.read();//Wait for input
+			//Check if we have to start
 			if(ID.valueOf(MAX_ID).isInInterval(chord.getPredecessorID(), chord.getID()) || MAX_ID.equals(chord.getID().toBigInteger())){
 				sm.firstShoot();
 			}

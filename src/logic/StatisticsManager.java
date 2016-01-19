@@ -23,7 +23,6 @@ import de.uniba.wiai.lspi.chord.service.ServiceException;
 import de.uniba.wiai.lspi.chord.service.impl.ChordImpl;
 
 /**
- * To retrieve Informations
  * @author Sven
  *
  */
@@ -55,15 +54,15 @@ public class StatisticsManager implements NotifyCallback{
 	public void retrieved(ID target) {
 		synchronized (this) {
 			logger.info("Retrieved shoot at "+target);
-			if(idToPlayer.isEmpty()){//First time action
+			if(idToPlayer.isEmpty()){//If the map is emty, then this is the first received message. So we have to initialize our players map.
 				initPlayerMap();
 			}
-			fillWithFingertable();
+			fillWithFingertable();//Check for new player in finger table
 			boolean hit = isHit(target);
 			self().shot(target, hit);
 			logger.info("Shot at: "+target+"; Was hit?: "+hit);
 			chord.broadcastAsync(target, hit);
-			List<Player> preparedPlayer = preparePlayer();
+			List<Player> preparedPlayer = preparePlayer();//Set the estimated start fields
 			logPlayerState(preparedPlayer);
 			shoot(preparedPlayer);		
 		}
@@ -76,23 +75,23 @@ public class StatisticsManager implements NotifyCallback{
 	@Override
 	public void broadcast(ID source, ID target, Boolean hit) {
 		synchronized (this) {
-			if(idToPlayer.isEmpty()){//First time action
+			if(idToPlayer.isEmpty()){//If the map is emty, then this is the first received message. So we have to initialize our players map.
 				initPlayerMap();
 			}
 			Player hitPlayer = idToPlayer.get(source);
 			logger.info("Retrieved broadcast: Player: "+source+"; Field: "+target+"; Hit: "+ hit);
-			if(hitPlayer == null){
+			if(hitPlayer == null){//Player was unknown before. So add him.
 				logger.info("New player found: "+source);
 				hitPlayer = new Player(source, shipsPerPlayer, fieldsPerPlayer);
-				//neuen spieler zur spielermap hinzufügen
 				idToPlayer.put(source, hitPlayer);
 			}
 			hitPlayer.shot(target, hit);
-			List<Player> preparedPlayer = preparePlayer();//Sets startfield of player
+			List<Player> preparedPlayer = preparePlayer();//Sets estimated start fields of player
 			logPlayerState(preparedPlayer);
-			if(ourShotsFired.contains(target)){
+			if(ourShotsFired.contains(target)){//Check if it was our shot
 				logger.info("Shot at Player: "+source+"; Field: "+target+"; Hit: "+hit+" was from you.");
 				ourShotsFired.remove(target);
+				//If it was our shot and there are no ships left for the player, then we have won
 				if(hitPlayer.getRemainingShips() == 0 && !alreadyWon){
 					SoundEffect.WON.play();
 					logger.log(Level.SEVERE, "You won!!!");
@@ -104,7 +103,7 @@ public class StatisticsManager implements NotifyCallback{
 	
 	public void firstShoot(){
 		logger.info("First shot is from you");
-		if(idToPlayer.isEmpty()){//First time action
+		if(idToPlayer.isEmpty()){//Initialize player map
 			initPlayerMap();
 		}
 		shoot(preparePlayer());		
@@ -115,11 +114,14 @@ public class StatisticsManager implements NotifyCallback{
 		ID predId = chord.getPredecessorID();
 		logger.info("Initialisation of player map: Your Range: From "+predId.toBigInteger().add(BigInteger.ONE)+" to "+ownId.toBigInteger());
 		Player self = new Player(ownId, shipsPerPlayer, fieldsPerPlayer);
-		self.setStartField(predId);
+		self.setStartField(ID.valueOf(predId.toBigInteger().add(BigInteger.ONE)));//Start field of ourself is one higher then the ID of our predecessor
 		idToPlayer.put(ownId, self);
 		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
 	
+	/**
+	 * Checks the finger table if it contains unknown players
+	 */
 	private void fillWithFingertable(){
 		logger.info("Check fingertable");
 		for(Node node:chord.getFingerTable()){
@@ -131,6 +133,10 @@ public class StatisticsManager implements NotifyCallback{
 		}
 	}
 	
+	/**
+	 * Sets the estimated start fields of the player
+	 * @return
+	 */
 	private List<Player> preparePlayer(){
 		logger.info("Prepare player");
 		fillWithFingertable();
@@ -154,40 +160,33 @@ public class StatisticsManager implements NotifyCallback{
 	 */
 	private void shoot(List<Player> player){
 		logger.info("Shoot player");
-		Collections.sort(player, new KillSelector());
+		Collections.sort(player, new KillSelector());//Sort by our criterion
 		int playerIndex = 0;
-		Player playerToShootAt = player.get(playerIndex);
-		if(playerToShootAt.equals(self())){
-			playerIndex++;
-			playerToShootAt = player.get(playerIndex);
-		}
-		logger.info("Player to shoot at "+playerToShootAt.getId());
-		ID fieldToShootAt;
+		ID fieldToShootAt = null;
 		do{
-			fieldToShootAt = playerToShootAt.getRandomNonShootField();
-			logger.info("Field to shoot at "+fieldToShootAt);
-			if(fieldToShootAt == null){
-				logger.info("Field was null");
+			if(playerIndex < player.size()){
+				Player playerToShootAt = player.get(playerIndex);
+				logger.info("Player to shoot at "+playerToShootAt.getId());
 				playerIndex++;
-				if(playerIndex < player.size()){
-					playerToShootAt = player.get(playerIndex);
-					logger.info("Player to shoot at "+playerToShootAt.getId());
-				}else{//No field found -> choose a random field -> shouldn't happen actually
-					logger.info("No field found: Shoot randomly");
-					Random r = new Random();
-					Player self = self();
-					BigInteger selfStart = self.getStartField().toBigInteger();
-					BigInteger selfEnd = self.getId().toBigInteger();
-					BigInteger fieldNrToShootAt;
-					do{
-						fieldNrToShootAt = new BigInteger(Main.NR_BITS_ID, r);
-					}while(fieldNrToShootAt.compareTo(selfStart) < 0 && fieldNrToShootAt.compareTo(selfEnd) > 0);
-					fieldToShootAt = ID.valueOf(fieldNrToShootAt);
-					logger.info("Random field: "+fieldNrToShootAt);
+				if(!playerToShootAt.equals(self())){//Choose player if its not our player
+					fieldToShootAt = playerToShootAt.getRandomNonShootField();
+					logger.info("Field to shoot at "+fieldToShootAt);
 				}
-			}			
+			}else{//No field found -> choose a random field -> shouldn't happen actually
+				logger.info("No field found: Shoot randomly");
+				Random r = new Random();
+				Player self = self();
+				BigInteger selfStart = self.getStartField().toBigInteger();
+				BigInteger selfEnd = self.getId().toBigInteger();
+				BigInteger fieldNrToShootAt;
+				do{
+					fieldNrToShootAt = new BigInteger(Main.NR_BITS_ID, r);
+				}while(fieldNrToShootAt.compareTo(selfStart) < 0 && fieldNrToShootAt.compareTo(selfEnd) > 0);
+				fieldToShootAt = ID.valueOf(fieldNrToShootAt);
+				logger.info("Random field: "+fieldNrToShootAt);
+			}		
 		}while(fieldToShootAt == null);
-		ourShotsFired.add(fieldToShootAt);
+		ourShotsFired.add(fieldToShootAt);//Add field to our shots
 		chord.retrieveAsync(fieldToShootAt);
 	}
 	
@@ -200,6 +199,9 @@ public class StatisticsManager implements NotifyCallback{
 		return false;
 	}
 	
+	/**
+	 * Fills fields randomly with ships
+	 */
 	private Set<Integer> fillFields(int nrShips, int nrFields){
 		logger.info("Fill fields with ships");
 		Set<Integer> fieldsWithShips = new HashSet<Integer>();
@@ -236,20 +238,25 @@ public class StatisticsManager implements NotifyCallback{
 		}
 	}
 	
+	/**
+	 * Sorts the player by our criterion
+	 * @author Sven
+	 *
+	 */
 	private class KillSelector implements Comparator<Player>{
 
 		@Override
 		public int compare(Player o1, Player o2) {
-			if(o1.getNrHits() > o2.getNrHits()){
+			if(o1.getNrHits() > o2.getNrHits()){//1.Nr of hits
 				return -1;
 			}else if(o2.getNrHits() > o1.getNrHits()){
 				return 1;
 			}else{
-				if(o1.getNrMisses() > o2.getNrMisses()){
+				if(o1.getNrMisses() > o2.getNrMisses()){//2. Nr of known fields
 					return -1;
 				}else if(o2.getNrMisses() > o1.getNrMisses()){
 					return 1;
-				}else{
+				}else{// 3. Who is the clockwise closest
 					BigInteger distO1 = BigInteger.ZERO;
 					BigInteger distO2 = BigInteger.ZERO;
 					BigInteger selfId = self().getId().toBigInteger();
