@@ -2,47 +2,55 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman,english]{babel}
+\usepackage{listings}
 
 %opening
 \title{Dokumentation - TTV Praktikum 3\&4}
 \author{Allers, Sven \& Gläser, Christian}
+\date{18. Januar 2016}
 
 \begin{document}
 
 \maketitle
 
-\begin{abstract}
-Informationen zum Start des Programs
-\end{abstract}
-\section{Konfiguration}
-In Eclipse werden die 2 Projekte Battleship und OpenChord benötigt.
+\section{Einleitung}
+Das Spiel wird mit Sourcesode sowie zugehöriger Anwendung aus geliefert. Der Sourcecode befindet sich in dem Ordner \textit{source}, die Anwendung in dem Ordner \textit{battleship}.
 \section{Spielablauf}
-\subsection{Konfiguration battleship.properties}
-fieldsPerPlayer=Normalerweise 100\newline
-shipsPerPlayer=Normalerweise 10\newline
-localURL=Die externe IP des eigenen Devices\newline
-bootstrapURL=Optional, IP des Knotenzuweisenden Devices\newline
-logFile=Name der Logdatei \newline
+\subsection{Konfiguration}
+In dem Ordner \textit{battleship} befindet sich die Datei \textit{battleship.properties}. Mithilfe dieser Datei kann die Anwendung konfiguriert werden. Folgende Parameter stehen zur Verfügung:
+\begin{description}
+	\item[fieldsPerPlayer] Die Anzahl der Felder, die ein jeder Spieler zum Verteilen seiner Schiffe zur Verfügung hat.
+	\item[shipsPerPlayer] Die Anzahl der Schiffe, die ein jeder Spieler auf dem Spielfeld verteilt.
+	\item[localURL] Die Adresse unter der der Spieler erreichbar ist. (OHNE Angabe des Protokolls) Z.B.: 192.168.0.2
+	\item[bootstrapURL] Die Adresse unter der der Bootstrapknoten erreichbar ist. (OHNE Angabe des Protokolls) Z.B.: 192.168.0.2. Wird dieses Feld nicht ausgefüllt oder gar entfernt, so startet die Anwendung selber als Bootstrapknoten. 
+	\item[logFile] Die Logdatei in der die Logs eingetragen werden sollen.
+\end{description}
+
 \subsection{Start des Programs}
-In Eclipse starten und Enter drücken um Spielablauf zu starten. Program gibt einen Schuss ab, wenn die höchste Chord-ID zugewiesen wurde.\newline
-Sonst: Warten auf Schuss in den eigenen Bereich.
+Die Anwendung kann mithilfe der mitgelieferten Runnable-Jar ausgeführt werden. Dazu geht man per Konsole in den Ordner \textit{battleship} und führt folgenden Befehl aus:
+\begin{lstlisting}
+java -jar battleship.jar
+\end{lstlisting}
+Optional kann auch eine alternative Datei zur Konfiguration der Anwendung übergeben werden. Z.B.:
+\begin{lstlisting}
+java -jar battleship.jar battleshop2.properties
+\end{lstlisting}
+
 \subsection{Spielablauf}
-Das Spiel gibt durch audiovisuelle Signale Hinweise auf den Spielzustand.\newline Zusätzlich lässt sich durch Konsolenausgaben der Spielstatus ermitteln
+Nach Start der Anwendung kann das Spiel durch drücken einer beliebigen Taste gestartet werden. Sollte der Spieler der Inhaber des Feldes mit der höchsten ID sein, so setzt das Spiel automatisch den ersten Schuss ab. Sollte dies nicht der Fall sein, so wartet dieser auf den Erhalt der ersten Nachricht. Da das lauschen auch schon vor drücken des Spiels stattfindet, startet das Spiel nach Erhalt einer Nachricht automatisch, auch wenn noch keine Taste gedrückt wurde.\\\\
+Sollte das Spiel gewonnen sein, so gibt das Spiel ein audiovisuelles Signal aus. Zusätzlich lässt sich durch Konsolenausgaben der aktuelle Spielstatus ermitteln.
+
 \section{Spielstrategie}
 \subsection{Auswahl des Opponenten für das Ziel}
-(Zu finden in: StatisticsManager-Killselector)\newline
-Alle Spieler haben zum Spielbeginn die gleiche Anzahl Schiffe. \newline
-Ausgewählt wird in jeder Runde der Gegner, der die meisten Anzahl an getroffenen Schiffen hat.\newline
-Bei gleicher Anzahl an getroffener Schiffe wird als nächstes Kriterium die Anzahl der nicht getroffenen Felder berücksichtigt.\newline
-Bei gleicher Anzahl an nicht getroffenen Feldern wird die Nachbarschaft berücksichtigt, die Nähe im Uhrzeigersinn ist ein eindeutiges Selektionskriterium.
+Um einen Gegner zu ermitteln der beschossen werden soll werden die Spieler zunächst nach unseren Auswahlkriterien sortiert. Dies geschieht in der \textit{StatisticsManager.Killselector}-Klasse. Dazu wird zunächst betrachtet bei welchem Spieler bereits die meisten Schiffe getroffen wurden. Bei gleicher Anzahl an getroffener Schiffe wird als nächstes Kriterium die Anzahl der nicht getroffenen Felder betrachtet, um zu ermitteln bei welchem Gegner mehr Felder bereits bekannt sind. Ist auch dies gleich wird der nächste Nachbar im Uhrzeigersinn bevorzugt. Die Nähe im Uhrzeigersinn ist ein eindeutiges Selektionskriterium.
+
 \subsection{Auswahl des Feldes}
+Nachdem ein geeigneter Spieler ermittelt wurde, muss noch ein Feld ausgewählt werden welches beschossen werden soll. Dies geschieht wie folgt:
 \begin{enumerate}
-	\item Startfelder der Spieler werden geschätzt. Grundlage: Empfangene Nachrichten
-		\subitem Spieler werden nach ID sortiert
-		\subitem Startfeld = ID des Vorgängers + 1
-		\subitem Endfeld = ID des Spielers
-	\item Berechnung: Welche logischen Felder wurden getroffen
-	\item Berechnung: Zufällige Auswahl eines noch nicht getroffenen Feldes
-	\item In die Mitte des Feldes, welches aus mehreren Chord-IDs besteht wird ein Schuss abgesetzt.
+	\item Schätzen der Startfelder der Spieler geschätzt. Dazu wird das Startfeld auf eins höher als die ID des letzten im Chordring bekannten vorherigen Spielers gesetzt.
+	\item Berechnen welche logischen Felder bereits beschossen wurden.
+	\item Berechnung: Zufällige Auswahl eines noch nicht beschossenen Feldes.
+	\item Schuss auf die Chord-Id in der Mitte des Feldes.
 \end{enumerate}
+Sollte aus irgendeinem Grund kein geeignetes Feld gefunden werden, so wird die Auswahl des Feldes bei dem nächstbesten Spieler durchgeführt. Sollte für keinen Spieler ein geeignetes Feld gefunden werden, so wird auf ein zufälliges Feld geschossen, welches nicht unseres ist.
 \end{document}
