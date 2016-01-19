@@ -26,7 +26,7 @@ public class Player implements Comparable<Player>{
 	private Integer nrHitsCache = null;
 	private Integer nrMissesCache = null;
 	private Integer nrContradictionsCache = null;
-	private Integer remainingCache = null;
+	private Integer nrVirginsCache = null;
 	private List<Field> fieldsCache = null;
 	
 	public Player(ID id, int nrShips, int nrFields){
@@ -104,28 +104,30 @@ public class Player implements Comparable<Player>{
 			this.startField = startField;
 		}		
 	}
-	
+
 	public int getRemainingShips(){
+		return nrShips - getNrHits();
+	}
+
+	public int getNrVirgins(){
 		if(startField == null){
 			return 0;
-		}else if(remainingCache == null){
-			remainingCache = getNrFieldsWithState(FieldState.VIRGIN);
-			return remainingCache;
+		}else if(nrVirginsCache == null){
+			nrVirginsCache = getNrFieldsWithState(FieldState.VIRGIN);
+			return nrVirginsCache;
 		}else{
-			return remainingCache;
+			return nrVirginsCache;
 		}
 	}
 	
 	private BigInteger calcMiddle(BigInteger from, BigInteger to){
-		BigInteger half;
 		if(from.compareTo(to) < 0){
-			half = from.add(to).divide(BigInteger.valueOf(2));
+			return from.add(to).divide(BigInteger.valueOf(2)).mod(Main.MAX_ID);
 		}else if(from.compareTo(to) > 0){
-			half = from.add(to.add(Main.MAX_ID)).divide(BigInteger.valueOf(2)).mod(Main.MAX_ID);
+			return from.add(to.add(Main.MAX_ID)).divide(BigInteger.valueOf(2)).mod(Main.MAX_ID);
 		}else{
-			half = BigInteger.ZERO;
+			return from;
 		}
-		return from.add(half).mod(Main.MAX_ID);
 	}
 	
 	private int getNrFieldsWithState(FieldState state){
@@ -133,7 +135,6 @@ public class Player implements Comparable<Player>{
 	}
 	
 	private List<Field> filterFields(Predicate<Field> condition){
-		//Auch in Zeile 92-99 fixen wenn Bug vorhanden!!!
 		
 		List<Field> filteredFields = new ArrayList<>(getFields());
 		Iterator<Field> it = filteredFields.iterator();
@@ -148,7 +149,7 @@ public class Player implements Comparable<Player>{
 	}
 	
 	public List<Field> getFields(){
-		if(this.fieldsCache == null){
+		if(this.fieldsCache == null && this.startField != null){
 			BigInteger start = startField.toBigInteger();
 			BigInteger end = id.toBigInteger();
 			if(start.compareTo(end) > 0){
@@ -159,34 +160,56 @@ public class Player implements Comparable<Player>{
 			
 			List<Field> newFieldsCache = new ArrayList<>();
 			List<ID> hittedFieldsSorted = new ArrayList<>(hits.keySet());
-			Collections.sort(hittedFieldsSorted);
+			ringSort(hittedFieldsSorted);
 			int sortedI = 0;
 			for(int i=0; i<this.nrFields; i++){
-				FieldState state = FieldState.VIRGIN;
-				BigInteger startField = this.id.toBigInteger().add(rangeSize.multiply(BigInteger.valueOf(i))).mod(Main.MAX_ID);
+				BigInteger startField = this.startField.toBigInteger().add(rangeSize.multiply(BigInteger.valueOf(i))).mod(Main.MAX_ID);
 				BigInteger endField = startField.add(rangeSize).subtract(BigInteger.ONE).mod(Main.MAX_ID);
+				Field field = new Field(i, FieldState.VIRGIN, startField, endField);
 				for(;sortedI<hittedFieldsSorted.size();sortedI++){
 					ID hittedField = hittedFieldsSorted.get(sortedI);
 					BigInteger hittedFieldBI = hittedField.toBigInteger();
-					if(hittedFieldBI.compareTo(endField) < 1){
-						if(state.equals(FieldState.VIRGIN)){
-							state = getFieldState(hits.get(hittedField));
-						}else if(!state.equals(FieldState.CONTRADICTORY)){
+					if(field.isInside(hittedFieldBI)){
+						if(field.state.equals(FieldState.VIRGIN)){
+							field.state = getFieldState(hits.get(hittedField));
+						}else if(!field.state.equals(FieldState.CONTRADICTORY)){
 							FieldState newState = getFieldState(hits.get(hittedField));
-							if(!newState.equals(state)){
-								state = FieldState.CONTRADICTORY;
+							if(!newState.equals(field.state)){
+								field.state = FieldState.CONTRADICTORY;
 							}
 						}
 					}else{
 						break;
 					}
 				}
-				newFieldsCache.add(new Field(i, state, startField, endField));
+				newFieldsCache.add(field);
 			}
 			fieldsCache = newFieldsCache;
 			return fieldsCache;
 		}else{
 			return fieldsCache;
+		}
+	}
+	
+
+	
+	/**
+	 * Sorts he fields in order as that the elements start with the start field and end with the id
+	 * @param fields
+	 */
+	private void ringSort(List<ID> fields){
+		Collections.sort(fields);
+		if(this.startField != null){
+			List<ID> toAppend = new ArrayList<ID>();
+			Iterator<ID> it = fields.iterator();
+			while(it.hasNext()){
+				ID id = it.next();
+				if(id.compareTo(this.startField) < 0){
+					toAppend.add(id);
+					it.remove();
+				}
+			}
+			fields.addAll(toAppend);
 		}
 	}
 	
@@ -206,7 +229,7 @@ public class Player implements Comparable<Player>{
 		nrHitsCache = null;
 		nrMissesCache = null;
 		nrContradictionsCache = null;
-		remainingCache = null;
+		nrVirginsCache = null;
 		fieldsCache = null;
 	}
 
@@ -245,16 +268,40 @@ public class Player implements Comparable<Player>{
 	
 	public class Field{
 		
-		int fieldNr;
-		BigInteger chordFrom = null;
-		BigInteger chordTo = null;
-		FieldState state;
+		private int fieldNr;
+		private BigInteger chordFrom = null;
+		private BigInteger chordTo = null;
+		private FieldState state;
 		
 		public Field(int fieldNr, FieldState state, BigInteger chordFrom, BigInteger chordTo){
 			this.fieldNr = fieldNr;
 			this.state = state;
 			this.chordFrom = chordFrom;
 			this.chordTo = chordTo;
+		}
+		
+		public int getFieldNr() {
+			return fieldNr;
+		}
+
+		public BigInteger getChordFrom() {
+			return chordFrom;
+		}
+
+		public BigInteger getChordTo() {
+			return chordTo;
+		}
+
+		public FieldState getState() {
+			return state;
+		}
+		
+		public boolean isInside(BigInteger field){
+			if(chordFrom.compareTo(chordTo) < 0){
+				return field.compareTo(chordFrom) > -1 && field.compareTo(chordTo) < 1;
+			}else{
+				return field.compareTo(chordFrom) > -1 || field.compareTo(chordTo) < 1;
+			}
 		}
 		
 		@Override

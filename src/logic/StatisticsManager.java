@@ -35,6 +35,7 @@ public class StatisticsManager implements NotifyCallback{
 	private ChordImpl chord;
 	private Set<Integer> fieldsWithShips;
 	private Logger logger = Main.getLogger(StatisticsManager.class.getName());
+	private boolean alreadyWon = false;
 	
 	//Our shots
 	private Set<ID> ourShotsFired = new HashSet<ID>();
@@ -52,19 +53,17 @@ public class StatisticsManager implements NotifyCallback{
 
 	@Override
 	public void retrieved(ID target) {
-		boolean hit;
-		List<Player> preparedPlayer;
 		synchronized (this) {
 			logger.info("Retrieved shoot at "+target);
 			if(idToPlayer.isEmpty()){//First time action
 				initPlayerMap();
 			}
 			fillWithFingertable();
-			hit = isHit(target);
+			boolean hit = isHit(target);
 			self().shot(target, hit);
 			logger.info("Shot at: "+target+"; Was hit?: "+hit);
 			chord.broadcastAsync(target, hit);
-			preparedPlayer = preparePlayer();
+			List<Player> preparedPlayer = preparePlayer();
 			logPlayerState(preparedPlayer);
 			shoot(preparedPlayer);		
 		}
@@ -94,9 +93,10 @@ public class StatisticsManager implements NotifyCallback{
 			if(ourShotsFired.contains(target)){
 				logger.info("Shot at Player: "+source+"; Field: "+target+"; Hit: "+hit+" was from you.");
 				ourShotsFired.remove(target);
-				if(hitPlayer.getRemainingShips() == 0){
-					logger.log(Level.SEVERE, "You won!!!");
+				if(hitPlayer.getRemainingShips() == 0 && !alreadyWon){
 					SoundEffect.WON.play();
+					logger.log(Level.SEVERE, "You won!!!");
+					alreadyWon = true;
 				}
 			}
 		}		
@@ -114,7 +114,9 @@ public class StatisticsManager implements NotifyCallback{
 		ID ownId = chord.getID();
 		ID predId = chord.getPredecessorID();
 		logger.info("Initialisation of player map: Your Range: From "+predId.toBigInteger().add(BigInteger.ONE)+" to "+ownId.toBigInteger());
-		idToPlayer.put(ownId, new Player(ownId, shipsPerPlayer, fieldsPerPlayer));
+		Player self = new Player(ownId, shipsPerPlayer, fieldsPerPlayer);
+		self.setStartField(predId);
+		idToPlayer.put(ownId, self);
 		idToPlayer.put(predId, new Player(predId, shipsPerPlayer, fieldsPerPlayer));		
 	}
 	
@@ -185,10 +187,16 @@ public class StatisticsManager implements NotifyCallback{
 				}
 			}			
 		}while(fieldToShootAt == null);
+		ourShotsFired.add(fieldToShootAt);
 		chord.retrieveAsync(fieldToShootAt);
 	}
 	
 	private boolean isHit(ID target){
+		for(Field f:self().getFields()){
+			if(f.isInside(target.toBigInteger())){
+				return fieldsWithShips.contains(f.getFieldNr());
+			}
+		};
 		return false;
 	}
 	
@@ -220,7 +228,7 @@ public class StatisticsManager implements NotifyCallback{
 	private void logPlayerState(List<Player> player){
 		logger.info("Current player states:");
 		for(Player p:player){
-			String logStr = "Player: "+p.getId()+"; Hits: "+p.getNrHits()+"; Misses: "+p.getNrMisses()+"; Remaining: "+p.getRemainingShips()+"; Contradictions: "+p.getNrContradictions()+"\n";
+			String logStr = "Player: "+p.getId()+"; Hits: "+p.getNrHits()+"; Misses: "+p.getNrMisses()+"; Remaining: "+p.getRemainingShips()+"; Virgins: "+p.getNrVirgins()+"; Contradictions: "+p.getNrContradictions()+"\n";
 			for(Field f:p.getFields()){
 				logStr += f+"\n";
 			}
